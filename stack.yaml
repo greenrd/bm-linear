@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-6.31
+resolver: lts-8.14
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -38,23 +38,24 @@ resolver: lts-6.31
 packages:
 - '.'
 - location:
-    git: https://github.com/byorgey/beeminder-api.git
-    commit: 3c900b47cba3bbf862c89795cd8253b945720776
+    git: https://github.com/greenrd/beeminder-api
+    commit: a917f6a9e91a1c8561337b4675a27cf542774bbf
 - location:
     git: https://github.com/markus1189/hoggl
-    commit: f8a9ef042a17324ed360aae9d890fc6e72a83937
+    commit: f6328d035ec62d8cb78438172a7a9070fd7cda68
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
-  - aeson-0.8.0.2
-  - attoparsec-0.12.1.6
-  - base-orphans-0.6
+  - data-default-class-0.0.1
   - data-default-instances-base-0.0.1
+  - http-client-0.4.31.2
+  - http-client-tls-0.2.4.1
+  - http-conduit-2.1.11
   - http-types-0.8.6
-  - mmorph-1.0.9
-  - servant-0.4.4.7
-  - servant-client-0.4.4.7
+  - lens-4.14
+  - logging-effect-1.2.0
+  - time-1.5.0.1
   - vector-0.10.12.3
 
 # Override default flag values for local packages and extra-deps
