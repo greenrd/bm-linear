@@ -33,10 +33,15 @@ $(makeLensesFor [ ("teStart", "_teStart")
                 , ("teStop", "_teStop")
                 ] ''CompletedTimeEntry)
 
-lastTimeDataEntered :: Token -> Text -> IO (Maybe UTCTime)
-lastTimeDataEntered tok goalID = runBeeminder tok $ do
-  goalDetails <- goal $ def & _Goal .~ goalID
-  pure $ posixSecondsToUTCTime . fromIntegral $ gReportedDate goalDetails
+lastTimeDataEntered :: Token -> Text -> LoggingT (WithSeverity Doc) IO (Maybe UTCTime)
+lastTimeDataEntered tok goalID = do
+  bmResult <- liftIO . runBeeminder tok $ do
+    goalDetails <- goal $ def & _Goal .~ goalID & _GetPoints .~ True
+    pure $ gPoints goalDetails
+  maybe (pure Nothing) (\pts -> logDebug ("points =" <+> vsep (value <$> pts)) $> findLTDE pts) bmResult
+  where
+    findLTDE :: [Point] -> Maybe UTCTime
+    findLTDE = map (posixSecondsToUTCTime . fromIntegral . maximum) . fromNullable . map pTimestamp . filter (not . ("RECOMMITTED ON " `isPrefixOf`) . pComment)
 
 data GoalResult = GoalResult { goalScore :: Double
                              , asOf :: UTCTime
@@ -50,7 +55,7 @@ value = text . pack . show
 
 nextScore :: ClientEnv -> TimeOfDay -> Token -> Text -> GoalConfig -> LoggingT (WithSeverity Doc) IO GoalResult
 nextScore clientEnv dayStarts tok goalSlug config = do
-  ltde <- maybe (fail "Getting goal failed") pure =<< liftIO (lastTimeDataEntered tok goalSlug)
+  ltde <- maybe (fail "Getting goal failed") pure =<< lastTimeDataEntered tok goalSlug
   logDebug $ "ltde =" <+> value ltde
   beforeFetch <- liftIO getCurrentTime
   tz <- liftIO getCurrentTimeZone
